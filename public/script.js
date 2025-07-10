@@ -1,5 +1,4 @@
 document.addEventListener('DOMContentLoaded', function() {
-  // DOM Elements
   const homePage = document.getElementById('home-page');
   const creationPage = document.getElementById('creation-page');
   const chatPage = document.getElementById('chat-page');
@@ -14,15 +13,12 @@ document.addEventListener('DOMContentLoaded', function() {
   const chatBotName = document.getElementById('chat-bot-name');
   const chatBotImage = document.getElementById('chat-bot-image');
   const botsList = document.getElementById('bots-list');
-  
-  // State
+
   let currentBot = null;
-  
-  // Initialize
+
   loadBots();
   checkUrlForBot();
 
-  // Event Listeners
   createBotBtn.addEventListener('click', showCreationPage);
   backBtn.addEventListener('click', showHomePage);
   backToHome.addEventListener('click', showHomePage);
@@ -31,7 +27,6 @@ document.addEventListener('DOMContentLoaded', function() {
   sendBtn.addEventListener('click', sendMessage);
   userInput.addEventListener('keypress', (e) => e.key === 'Enter' && sendMessage());
 
-  // Fungsi Navigasi
   function showPage(page) {
     homePage.style.display = 'none';
     creationPage.style.display = 'none';
@@ -55,15 +50,12 @@ document.addEventListener('DOMContentLoaded', function() {
     chatMessages.innerHTML = `<div class="message bot-message">Hai! Saya ${currentBot.name}. ${currentBot.description.substring(0, 50)}...</div>`;
   }
 
-  // Fungsi Bot
   async function loadBots() {
     try {
       const response = await fetch('/api/bots');
       const bots = await response.json();
       renderBots(bots);
-    } catch (error) {
-      console.error("Gagal memuat bot:", error);
-    }
+    } catch (error) {}
   }
 
   function renderBots(bots) {
@@ -96,10 +88,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const name = document.getElementById('bot-name').value.trim();
     const image = document.getElementById('bot-image').value.trim();
 
-    if (!description || !name) {
-      alert("Deskripsi dan nama bot harus diisi!");
-      return;
-    }
+    if (!description || !name) return alert("Deskripsi dan nama bot harus diisi!");
 
     try {
       const response = await fetch('/api/bots', {
@@ -111,66 +100,76 @@ document.addEventListener('DOMContentLoaded', function() {
       currentBot = await response.json();
       showChatPage();
       loadBots();
-    } catch (error) {
-      console.error("Gagal membuat bot:", error);
-    }
+    } catch (error) {}
   }
 
-  // Fungsi Chat
   async function sendMessage() {
     const message = userInput.value.trim();
     if (!message || !currentBot) return;
 
     addMessage(message, 'user');
     userInput.value = '';
+    const typingId = addMessage("...", 'bot', true);
 
     try {
-      const typingId = addMessage("...", 'bot', true);
-      
-      const response = await fetch('/api/generate-response', {
+      const response = await fetch('/api/ai', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          message, 
-          botInfo: currentBot 
+        body: JSON.stringify({
+          prompt: message,
+          content: currentBot.description
         })
       });
 
       const data = await response.json();
-      updateMessage(typingId, data.response, 'bot');
+      updateMessage(typingId, data.response || JSON.stringify(data), 'bot');
     } catch (error) {
-      console.error("Error:", error);
-      addMessage("Maaf, terjadi error saat memproses pesan.", 'bot');
+      updateMessage(typingId, "Maaf, terjadi error saat memproses pesan.", 'bot');
     }
   }
 
   function addMessage(text, sender, isTemp = false) {
-    const messageDiv = document.createElement('div');
+  const messageDiv = document.createElement('div');
+  messageDiv.className = `message ${sender}-message`;
+  messageDiv.textContent = text;
+  if (isTemp) messageDiv.id = `temp-${Date.now()}`;
+  chatMessages.appendChild(messageDiv);
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+  return isTemp ? messageDiv.id : null;
+}
+
+function showTypingLoader() {
+  const id = `temp-${Date.now()}`;
+  const loader = document.createElement('div');
+  loader.className = 'message bot-message';
+  loader.id = id;
+  loader.innerHTML = `
+    <div class="loader">
+      <div></div><div></div><div></div>
+    </div>
+  `;
+  chatMessages.appendChild(loader);
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+  return id;
+}
+
+function updateMessage(id, newText, sender) {
+  const messageDiv = document.getElementById(id);
+  if (messageDiv) {
     messageDiv.className = `message ${sender}-message`;
-    messageDiv.textContent = text;
-    if (isTemp) messageDiv.id = `temp-${Date.now()}`;
-    chatMessages.appendChild(messageDiv);
-    chatMessages.scrollTop = chatMessages.scrollHeight;
-    return isTemp ? messageDiv.id : null;
+    messageDiv.textContent = newText;
+    messageDiv.id = '';
   }
+}
 
-  function updateMessage(id, newText, sender) {
-    const messageDiv = document.getElementById(id);
-    if (messageDiv) {
-      messageDiv.textContent = newText;
-      messageDiv.className = `message ${sender}-message`;
-      messageDiv.id = '';
-    }
-  }
 
-  // Fungsi Lainnya
   function checkUrlForBot() {
     const params = new URLSearchParams(window.location.search);
     const botId = params.get('bot');
     if (botId) fetch(`/api/bots/${botId}`)
       .then(res => res.json())
       .then(bot => { currentBot = bot; showChatPage(); })
-      .catch(console.error);
+      .catch(() => {});
   }
 
   function shareBot() {
