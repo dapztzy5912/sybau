@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Bot Creator</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/styles.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container py-4">
+        <div id="home-page">
+            <div class="text-center mb-5">
+                <h1 class="display-4">Create Your AI Bot</h1>
+                <p class="lead">Design a personalized AI chatbot and share it with friends</p>
+                <button id="create-bot-btn" class="btn btn-success btn-lg mt-3">Create AI Bot</button>
+            </div>
+
+            <h3 class="mb-4">Recently Created Bots</h3>
+            <div id="bots-list" class="row">
+                <!-- Bots will be loaded here -->
+            </div>
+        </div>
+
+        <div id="creation-page" style="display: none;">
+            <div class="creation-form">
+                <h2 class="mb-4">Create Your AI Bot</h2>
+                <div class="mb-3">
+                    <label for="bot-description" class="form-label">Bot Description</label>
+                    <textarea class="form-control" id="bot-description" rows="5"></textarea>
+                </div>
+                <div class="mb-3">
+                    <label for="bot-name" class="form-label">Bot Name</label>
+                    <input type="text" class="form-control" id="bot-name">
+                </div>
+                <div class="mb-3">
+                    <label for="bot-image" class="form-label">Bot Image URL</label>
+                    <input type="text" class="form-control" id="bot-image">
+                </div>
+                <button id="create-btn" class="btn btn-success">Create Bot</button>
+                <button id="back-btn" class="btn btn-outline-secondary ms-2">Back</button>
+            </div>
+        </div>
+
+        <div id="chat-page" style="display: none;">
+            <div class="chat-container">
+                <div class="chat-header">
+                    <img id="chat-bot-image" src="" alt="Bot Image">
+                    <h5 id="chat-bot-name" class="mb-0"></h5>
+                </div>
+                <div class="chat-messages" id="chat-messages"></div>
+                <div class="chat-input">
+                    <input type="text" id="user-input" placeholder="Type a message...">
+                    <button id="send-btn">→</button>
+                </div>
+            </div>
+            <div class="text-center mt-3">
+                <button id="share-btn" class="btn btn-success">Share This Bot</button>
+                <button id="back-to-home" class="btn btn-outline-secondary ms-2">Back to Home</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/script.js"></script>
+</body>
+</html>
