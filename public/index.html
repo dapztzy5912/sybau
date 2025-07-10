@@ -1,67 +1,299 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Bot Creator</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="/styles.css" rel="stylesheet">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SYBAU AI Bot</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+      background: #f0f2f5;
+      font-family: sans-serif;
+    }
+    .page {
+      display: none;
+      padding: 1.5rem;
+      height: 100%;
+      overflow-y: auto;
+    }
+    #chat-page {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+    #chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      background: white;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .message {
+      padding: 10px 15px;
+      border-radius: 20px;
+      max-width: 80%;
+      word-wrap: break-word;
+    }
+    .user-message {
+      align-self: flex-end;
+      background-color: #d1e7dd;
+    }
+    .bot-message {
+      align-self: flex-start;
+      background-color: #fff3cd;
+    }
+    .bot-card {
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+    .bot-card:hover {
+      transform: scale(1.02);
+    }
+    .input-area {
+      display: flex;
+      gap: 8px;
+      margin-top: 1rem;
+    }
+    .loader {
+      width: 40px;
+      height: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .loader div {
+      width: 8px;
+      height: 8px;
+      background: #888;
+      border-radius: 50%;
+      animation: bounce 0.6s infinite alternate;
+    }
+    .loader div:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+    .loader div:nth-child(3) {
+      animation-delay: 0.4s;
+    }
+    @keyframes bounce {
+      to {
+        transform: translateY(-8px);
+        background-color: #444;
+      }
+    }
+  </style>
 </head>
 <body>
-    <div class="container py-4">
-        <div id="home-page">
-            <div class="text-center mb-5">
-                <h1 class="display-4">Create Your AI Bot</h1>
-                <p class="lead">Design a personalized AI chatbot and share it with friends</p>
-                <button id="create-bot-btn" class="btn btn-success btn-lg mt-3">Create AI Bot</button>
-            </div>
-
-            <h3 class="mb-4">Recently Created Bots</h3>
-            <div id="bots-list" class="row">
-                <!-- Bots will be loaded here -->
-            </div>
-        </div>
-
-        <div id="creation-page" style="display: none;">
-            <div class="creation-form">
-                <h2 class="mb-4">Create Your AI Bot</h2>
-                <div class="mb-3">
-                    <label for="bot-description" class="form-label">Bot Description</label>
-                    <textarea class="form-control" id="bot-description" rows="5"></textarea>
-                </div>
-                <div class="mb-3">
-                    <label for="bot-name" class="form-label">Bot Name</label>
-                    <input type="text" class="form-control" id="bot-name">
-                </div>
-                <div class="mb-3">
-                    <label for="bot-image" class="form-label">Bot Image URL</label>
-                    <input type="text" class="form-control" id="bot-image">
-                </div>
-                <button id="create-btn" class="btn btn-success">Create Bot</button>
-                <button id="back-btn" class="btn btn-outline-secondary ms-2">Back</button>
-            </div>
-        </div>
-
-        <div id="chat-page" style="display: none;">
-            <div class="chat-container">
-                <div class="chat-header">
-                    <img id="chat-bot-image" src="" alt="Bot Image">
-                    <h5 id="chat-bot-name" class="mb-0"></h5>
-                </div>
-                <div class="chat-messages" id="chat-messages"></div>
-                <div class="chat-input">
-                    <input type="text" id="user-input" placeholder="Type a message...">
-                    <button id="send-btn">→</button>
-                </div>
-            </div>
-            <div class="text-center mt-3">
-                <button id="share-btn" class="btn btn-success">Share This Bot</button>
-                <button id="back-to-home" class="btn btn-outline-secondary ms-2">Back to Home</button>
-            </div>
-        </div>
+<audio id="notif-sound" src="notifikasi.mp3" preload="auto"></audio>
+<div id="home-page" class="page" style="display:block">
+  <h2 class="mb-4">Daftar Bot</h2>
+  <button id="create-bot-btn" class="btn btn-primary mb-3">Buat Bot Baru</button>
+  <div id="bots-list" class="row"></div>
+</div>
+<div id="creation-page" class="page">
+  <h2>Buat Bot AI</h2>
+  <div class="mb-3">
+    <label for="bot-name" class="form-label">Nama Bot</label>
+    <input type="text" id="bot-name" class="form-control">
+  </div>
+  <div class="mb-3">
+    <label for="bot-description" class="form-label">Deskripsi Bot (Kepribadian AI)</label>
+    <textarea id="bot-description" class="form-control" rows="3"></textarea>
+  </div>
+  <div class="mb-3">
+    <label for="bot-image" class="form-label">URL Gambar Bot (Opsional)</label>
+    <input type="text" id="bot-image" class="form-control">
+  </div>
+  <div class="d-flex gap-2">
+    <button id="create-btn" class="btn btn-success">Simpan & Chat</button>
+    <button id="back-btn" class="btn btn-secondary">Kembali</button>
+  </div>
+</div>
+<div id="chat-page" class="page">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <div class="d-flex align-items-center gap-2">
+      <img id="chat-bot-image" src="" width="40" height="40" style="object-fit:cover;border-radius:50%;">
+      <h5 id="chat-bot-name" class="m-0"></h5>
     </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="/script.js"></script>
+    <div class="d-flex gap-2">
+      <button id="share-btn" class="btn btn-sm btn-outline-info">Bagikan</button>
+      <button id="back-to-home" class="btn btn-sm btn-outline-secondary">Kembali</button>
+    </div>
+  </div>
+  <div id="chat-messages"></div>
+  <div class="input-area">
+    <input type="text" id="user-input" class="form-control" placeholder="Ketik pesan...">
+    <button id="send-btn" class="btn btn-primary">Kirim</button>
+  </div>
+</div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const homePage = document.getElementById('home-page');
+  const creationPage = document.getElementById('creation-page');
+  const chatPage = document.getElementById('chat-page');
+  const createBotBtn = document.getElementById('create-bot-btn');
+  const backBtn = document.getElementById('back-btn');
+  const createBtn = document.getElementById('create-btn');
+  const backToHome = document.getElementById('back-to-home');
+  const shareBtn = document.getElementById('share-btn');
+  const userInput = document.getElementById('user-input');
+  const sendBtn = document.getElementById('send-btn');
+  const chatMessages = document.getElementById('chat-messages');
+  const chatBotName = document.getElementById('chat-bot-name');
+  const chatBotImage = document.getElementById('chat-bot-image');
+  const botsList = document.getElementById('bots-list');
+  const notifSound = document.getElementById('notif-sound');
+  let currentBot = null;
+  loadBots();
+  checkUrlForBot();
+  createBotBtn.addEventListener('click', showCreationPage);
+  backBtn.addEventListener('click', showHomePage);
+  backToHome.addEventListener('click', showHomePage);
+  createBtn.addEventListener('click', createBot);
+  shareBtn.addEventListener('click', shareBot);
+  sendBtn.addEventListener('click', sendMessage);
+  userInput.addEventListener('keypress', (e) => e.key === 'Enter' && sendMessage());
+  function showPage(page) {
+    homePage.style.display = 'none';
+    creationPage.style.display = 'none';
+    chatPage.style.display = 'none';
+    document.getElementById(`${page}-page`).style.display = 'block';
+  }
+  function showHomePage() {
+    showPage('home');
+    window.history.pushState({}, '', '/');
+  }
+  function showCreationPage() {
+    showPage('creation');
+  }
+  function showChatPage() {
+    showPage('chat');
+    chatBotName.textContent = currentBot.name;
+    chatBotImage.src = currentBot.image;
+    chatMessages.innerHTML = `<div class="message bot-message">Hai! Saya ${currentBot.name}. ${currentBot.description.substring(0, 50)}...</div>`;
+  }
+  async function loadBots() {
+    try {
+      const response = await fetch('/api/bots');
+      const bots = await response.json();
+      renderBots(bots);
+    } catch {}
+  }
+  function renderBots(bots) {
+    botsList.innerHTML = bots.map(bot => `
+      <div class="col-md-4 mb-3">
+        <div class="card bot-card">
+          <img src="${bot.image}" class="card-img-top" alt="${bot.name}">
+          <div class="card-body">
+            <h5 class="card-title">${bot.name}</h5>
+            <p class="card-text">${bot.description.substring(0, 50)}...</p>
+            <button class="btn btn-sm btn-success chat-with-bot" data-bot-id="${bot.id}">Chat</button>
+          </div>
+        </div>
+      </div>
+    `).join('');
+    document.querySelectorAll('.chat-with-bot').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const botId = btn.getAttribute('data-bot-id');
+        const response = await fetch(`/api/bots/${botId}`);
+        currentBot = await response.json();
+        showChatPage();
+        window.history.pushState({}, '', `?bot=${botId}`);
+      });
+    });
+  }
+  async function createBot() {
+    const description = document.getElementById('bot-description').value.trim();
+    const name = document.getElementById('bot-name').value.trim();
+    const image = document.getElementById('bot-image').value.trim() || 'https://via.placeholder.com/40';
+    if (!description || !name) return alert("Deskripsi dan nama bot harus diisi!");
+    currentBot = { description, name, image };
+    showChatPage();
+  }
+  async function sendMessage() {
+    const message = userInput.value.trim();
+    if (!message || !currentBot) return;
+    addMessage(message, 'user');
+    userInput.value = '';
+    const typingId = showTypingLoader();
+    try {
+      const response = await fetch('/api/ai', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt: message, content: currentBot.description })
+      });
+      const data = await response.json();
+      updateMessage(typingId, data.response || 'Tidak ada respons dari AI', 'bot');
+      notifSound.play();
+    } catch {
+      updateMessage(typingId, "Maaf, terjadi error saat memproses pesan.", 'bot');
+    }
+  }
+  function addMessage(text, sender, isTemp = false) {
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `message ${sender}-message`;
+    messageDiv.textContent = text;
+    if (isTemp) messageDiv.id = `temp-${Date.now()}`;
+    chatMessages.appendChild(messageDiv);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+    return isTemp ? messageDiv.id : null;
+  }
+  function showTypingLoader() {
+    const id = `temp-${Date.now()}`;
+    const loader = document.createElement('div');
+    loader.className = 'message bot-message';
+    loader.id = id;
+    loader.innerHTML = `<div class="loader"><div></div><div></div><div></div></div>`;
+    chatMessages.appendChild(loader);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+    return id;
+  }
+  function updateMessage(id, newText, sender) {
+    const messageDiv = document.getElementById(id);
+    if (messageDiv) {
+      messageDiv.className = `message ${sender}-message`;
+      messageDiv.textContent = newText;
+      messageDiv.id = '';
+    }
+  }
+  function checkUrlForBot() {
+    const params = new URLSearchParams(window.location.search);
+    const botId = params.get('bot');
+    if (botId) fetch(`/api/bots/${botId}`)
+      .then(res => res.json())
+      .then(bot => { currentBot = bot; showChatPage(); })
+      .catch(() => {});
+  }
+  function shareBot() {
+    if (!currentBot) return;
+    const url = `${window.location.origin}?bot=${currentBot.id}`;
+    if (navigator.share) {
+      navigator.share({
+        title: `Chat dengan ${currentBot.name}`,
+        text: `Saya membuat bot AI: ${currentBot.name}`,
+        url
+      }).catch(() => copyToClipboard(url));
+    } else {
+      copyToClipboard(url);
+      alert("Link bot disalin!");
+    }
+  }
+  function copyToClipboard(text) {
+    navigator.clipboard.writeText(text).catch(() => {
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textarea);
+    });
+  }
+});
+</script>
 </body>
 </html>
