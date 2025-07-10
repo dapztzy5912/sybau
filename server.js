@@ -11,6 +11,30 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
+const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
+
+
+app.post('/api/ai', async (req, res) => {
+  const { prompt, content } = req.body;
+
+  if (!prompt || !content) {
+    return res.status(400).json({ error: "Prompt and content are required" });
+  }
+
+  const finalContent = `${content}. Jawablah sebagai karakter ini, jangan keluar dari peran.`;
+
+  const apiUrl = `https://api.only-awan.biz.id/api/ai/gpt3?prompt=${encodeURIComponent(prompt)}&content=${encodeURIComponent(finalContent)}&apikey=jcj6uqsC`;
+
+  try {
+    const response = await fetch(apiUrl);
+    const result = await response.json();
+    res.json({ response: result.data?.data || "Tidak ada respon dari AI." });
+  } catch (error) {
+    console.error("Error calling external AI:", error);
+    res.status(500).json({ error: "Failed to call AI API" });
+  }
+});
+
 // Simpan data bot di memory (bisa diganti database)
 let bots = [];
 
